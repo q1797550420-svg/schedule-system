@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<!-- saved from url=(0112)file:///C:/Users/17975/Downloads/%E8%B7%83%E8%BF%9B%E7%89%A9%E7%90%86%E8%AF%BE%E8%A1%A8%E7%B3%BB%E7%BB%9F_1.html -->
+<html lang="zh-CN"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>跃进初高物 · 课表管理系统</title>
+<script src="./跃进初高物 · 课表管理系统_files/supabase-umd.min.js.下载"></script>
+<style>
+/* ══════════════ TOKENS ══════════════ */
+:root{
+  --bg:#090f1a;--bg2:#0e1624;--bg3:#131e30;--bg4:#1a2540;
+  --blue:#3b82f6;--blue2:#60a5fa;--blue3:rgba(59,130,246,.15);
+  --gold:#f59e0b;--gold2:#fbbf24;
+  --green:#10b981;--green2:#34d399;
+  --red:#ef4444;--purple:#8b5cf6;--pink:#ec4899;--teal:#06b6d4;
+  --line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.13);
+  --muted:rgba(255,255,255,.4);--sub:rgba(255,255,255,.65);
+  --white:#fff;--r:10px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{font-size:14px;-webkit-font-smoothing:antialiased;}
+body{font-family:'PingFang SC','Noto Sans SC',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;}
+
+/* ══════════════ SETUP SCREEN ══════════════ */
+#setupScreen{
+  position:fixed;inset:0;background:var(--bg);z-index:500;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+}
+.setup-box{
+  background:var(--bg2);border:1px solid var(--line2);border-radius:18px;
+  padding:40px 36px;max-width:500px;width:100%;
+}
+.setup-logo{font-size:22px;font-weight:800;color:var(--white);margin-bottom:6px;}
+.setup-logo span{color:var(--gold);}
+.setup-sub{font-size:13px;color:var(--muted);margin-bottom:28px;line-height:1.7;}
+.setup-step{display:flex;align-items:flex-start;gap:14px;margin-bottom:18px;padding:14px;background:var(--bg3);border-radius:10px;}
+.step-num{width:26px;height:26px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-body{font-size:13px;color:var(--sub);line-height:1.75;}
+.step-body b{color:#fff;font-weight:600;}
+.step-body a{color:var(--blue2);text-decoration:none;}
+.step-body code{background:var(--bg4);border:1px solid var(--line2);border-radius:4px;padding:2px 7px;font-size:12px;color:var(--gold2);font-family:'Courier New',monospace;}
+.fi{margin-top:20px;}
+.fi label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px;}
+.fi input{width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:8px;padding:10px 12px;color:#fff;font-size:13px;font-family:inherit;outline:none;}
+.fi input:focus{border-color:var(--blue);}
+.fi input::placeholder{color:var(--muted);}
+.setup-btn{width:100%;margin-top:18px;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.setup-btn:hover{opacity:.85;}
+.setup-err{margin-top:10px;font-size:12px;color:var(--red);text-align:center;min-height:18px;}
+
+/* ══════════════ MAIN LAYOUT ══════════════ */
+#app{display:none;flex-direction:column;min-height:100vh;}
+
+/* ── SIDEBAR ── */
+.layout{display:flex;flex:1;}
+.sidebar{
+  width:220px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
+  position:sticky;top:0;height:100vh;overflow-y:auto;
+}
+.sidebar-logo{padding:20px 18px 14px;border-bottom:1px solid var(--line);}
+.sidebar-logo .name{font-size:16px;font-weight:800;color:#fff;}
+.sidebar-logo .name span{color:var(--gold);}
+.sidebar-logo .tagline{font-size:11px;color:var(--muted);margin-top:2px;}
+.sidebar-section{padding:14px 12px 6px;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;}
+.teacher-btn{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  border-radius:8px;cursor:pointer;transition:background .15s;
+  margin:0 6px 2px;border:none;background:transparent;width:calc(100% - 12px);text-align:left;
+}
+.teacher-btn:hover{background:var(--bg3);}
+.teacher-btn.active{background:var(--blue3);border:1px solid rgba(59,130,246,.3);}
+.teacher-avatar{
+  width:32px;height:32px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:#fff;
+}
+.teacher-info{flex:1;min-width:0;}
+.teacher-name{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.teacher-count{font-size:11px;color:var(--muted);}
+.teacher-btn.active .teacher-name{color:var(--blue2);}
+.sidebar-add-teacher{
+  margin:6px 10px 0;padding:8px;border-radius:8px;
+  border:1px dashed var(--line2);background:transparent;
+  color:var(--muted);font-size:12px;cursor:pointer;width:calc(100% - 20px);
+  transition:all .15s;font-family:inherit;
+}
+.sidebar-add-teacher:hover{border-color:var(--blue);color:var(--blue2);}
+.sidebar-footer{margin-top:auto;padding:14px 12px;border-top:1px solid var(--line);}
+.sync-status{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--green);flex-shrink:0;}
+.sync-dot.loading{background:var(--gold);animation:pulse .8s infinite;}
+.sync-dot.error{background:var(--red);}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+
+/* toolbar */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--line);
+  gap:12px;flex-wrap:wrap;background:var(--bg2);
+  position:sticky;top:0;z-index:50;
+}
+.topbar-left{display:flex;align-items:center;gap:10px;}
+.nav-btn{background:var(--bg3);border:1px solid var(--line2);color:var(--sub);padding:6px 13px;border-radius:7px;cursor:pointer;font-size:13px;transition:all .15s;font-family:inherit;}
+.nav-btn:hover{border-color:var(--blue);color:#fff;}
+.period-label{font-size:14px;font-weight:700;color:#fff;min-width:180px;text-align:center;}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.view-btn{padding:5px 11px;border-radius:6px;border:1px solid var(--line2);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;transition:all .15s;font-family:inherit;}
+.view-btn.active{background:var(--blue3);border-color:var(--blue);color:var(--blue2);}
+.add-btn{background:var(--blue);color:#fff;border:none;padding:7px 16px;border-radius:7px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:opacity .15s;}
+.add-btn:hover{opacity:.85;}
+
+/* legend */
+.legend-bar{display:flex;gap:14px;flex-wrap:wrap;padding:9px 20px;border-bottom:1px solid var(--line);align-items:center;background:var(--bg);}
+.lg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--sub);}
+.lg-dot{width:9px;height:9px;border-radius:3px;flex-shrink:0;}
+.lg-hint{margin-left:auto;font-size:11px;color:var(--muted);}
+
+/* stats */
+.stats-bar{display:flex;gap:20px;flex-wrap:wrap;padding:8px 20px;border-bottom:1px solid var(--line);align-items:center;}
+.stat{font-size:12px;color:var(--muted);}
+.stat b{color:#fff;font-size:13px;}
+
+/* table */
+.table-wrap{overflow-x:auto;padding:16px 20px 40px;flex:1;}
+table{width:100%;border-collapse:separate;border-spacing:0;min-width:860px;}
+th{background:var(--bg3);color:var(--muted);font-size:11.5px;font-weight:600;padding:8px 8px;text-align:center;border:1px solid var(--line);white-space:nowrap;}
+th.date-col{width:88px;}
+th.day-col{width:56px;}
+th.note-col{width:72px;}
+td{border:1px solid var(--line);vertical-align:top;padding:3px;}
+td.meta{font-size:12px;color:var(--muted);text-align:center;padding:8px 4px;background:var(--bg2);white-space:nowrap;}
+td.meta.today-col{background:rgba(59,130,246,.08);}
+td.day-meta{font-size:12px;color:var(--sub);text-align:center;padding:8px 4px;background:var(--bg2);}
+td.day-meta.weekend{color:var(--gold);}
+td.note-meta{background:var(--bg2);padding:3px 4px;}
+.note-inp{background:transparent;border:none;color:var(--muted);font-size:11px;width:100%;text-align:center;font-family:inherit;cursor:pointer;outline:none;padding:3px;}
+.note-inp:focus{color:#fff;background:rgba(59,130,246,.12);border-radius:4px;}
+tr.weekend-row td{background:rgba(245,158,11,.025);}
+tr:hover td{background:rgba(255,255,255,.015);}
+td.slot{min-height:42px;cursor:pointer;transition:background .1s;}
+td.slot:hover{background:rgba(59,130,246,.07)!important;}
+td.slot.today-slot{background:rgba(59,130,246,.04);}
+td.slot::after{content:'＋';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:16px;color:rgba(255,255,255,.06);pointer-events:none;}
+td.slot{position:relative;}
+td.slot:hover::after{color:rgba(59,130,246,.3);}
+
+/* lesson chip */
+.chip{border-radius:5px;padding:4px 7px;margin:2px;font-size:12px;font-weight:500;cursor:pointer;position:relative;transition:opacity .12s;line-height:1.4;display:flex;align-items:flex-start;justify-content:space-between;gap:4px;}
+.chip:hover{opacity:.8;}
+.chip-name{flex:1;word-break:break-all;}
+.chip-edit{opacity:0;font-size:13px;color:rgba(255,255,255,.65);padding:0 2px;flex-shrink:0;}
+.chip:hover .chip-edit{opacity:1;}
+
+/* colors */
+.cc-blue{background:rgba(59,130,246,.22);border:1px solid rgba(59,130,246,.4);color:#93c5fd;}
+.cc-green{background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.35);color:#6ee7b7;}
+.cc-gold{background:rgba(245,158,11,.2);border:1px solid rgba(245,158,11,.35);color:#fcd34d;}
+.cc-purple{background:rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.35);color:#c4b5fd;}
+.cc-pink{background:rgba(236,72,153,.18);border:1px solid rgba(236,72,153,.32);color:#f9a8d4;}
+.cc-red{background:rgba(239,68,68,.18);border:1px solid rgba(239,68,68,.32);color:#fca5a5;}
+.cc-teal{background:rgba(6,182,212,.18);border:1px solid rgba(6,182,212,.32);color:#67e8f9;}
+
+/* ══════════════ MODAL ══════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+.overlay.show{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--line2);border-radius:16px;width:100%;max-width:400px;padding:24px;animation:pop .15s ease;}
+@keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:18px;}
+.frow{margin-bottom:14px;}
+.frow label{font-size:12px;color:var(--muted);display:block;margin-bottom:5px;}
+.frow input,.frow select{width:100%;background:var(--bg3);border:1px solid var(--line2);border-radius:7px;padding:8px 10px;color:#fff;font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;}
+.frow input:focus,.frow select:focus{border-color:var(--blue);}
+.frow select option{background:#1a2035;}
+.color-pick{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.cpick{width:26px;height:26px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:border-color .12s;flex-shrink:0;}
+.cpick.sel{border-color:#fff;}
+.mfooter{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+.mbtn{padding:7px 18px;border-radius:7px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .12s;}
+.mbtn:hover{opacity:.82;}
+.mbtn-blue{background:var(--blue);color:#fff;}
+.mbtn-red{background:var(--red);color:#fff;}
+.mbtn-out{background:transparent;color:var(--sub);border:1px solid var(--line2);}
+
+/* teacher modal */
+.teacher-color-pick{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px;}
+.tcolor{width:26px;height:26px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:border-color .12s;}
+.tcolor.sel{border-color:#fff;}
+
+/* toast */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--line2);border-radius:10px;padding:10px 18px;font-size:13px;color:#fff;z-index:999;opacity:0;transform:translateY(8px);transition:all .25s;pointer-events:none;}
+.toast.show{opacity:1;transform:none;}
+
+/* loading */
+.loading-overlay{position:fixed;inset:0;background:rgba(9,15,26,.8);z-index:150;display:flex;align-items:center;justify-content:center;display:none;}
+.loading-overlay.show{display:flex;}
+.spinner{width:36px;height:36px;border:3px solid var(--line2);border-top-color:var(--blue);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+@media(max-width:720px){
+  .sidebar{display:none;}
+  .period-label{min-width:120px;font-size:13px;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ SETUP ══ -->
+<div id="setupScreen">
+  <div class="setup-box">
+    <div class="setup-logo">跃进初高物 · <span>课表系统</span></div>
+    <div class="setup-sub">首次使用需要连接云数据库，按以下步骤操作一次，以后直接打开就能用。</div>
+
+    <div class="setup-step">
+      <div class="step-num">1</div>
+      <div class="step-body">打开 <a href="https://supabase.com/" target="_blank">supabase.com</a>，注册免费账号（用 GitHub 或邮箱）</div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">2</div>
+      <div class="step-body">点击 <b>New Project</b>，填项目名（如 schedule），记住你设置的数据库密码</div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">3</div>
+      <div class="step-body">进入项目后，点左侧 <b>SQL Editor</b>，粘贴下方 SQL 并运行：<br><br>
+<code>create table teachers (id serial primary key, name text, color text, created_at timestamptz default now());
+create table lessons (id serial primary key, teacher_id int references teachers(id), date text, slot int, name text, color text, note text, created_at timestamptz default now());
+alter table teachers enable row level security;
+alter table lessons enable row level security;
+create policy "allow all" on teachers for all using (true) with check (true);
+create policy "allow all" on lessons for all using (true) with check (true);</code></div>
+    </div>
+    <div class="setup-step">
+      <div class="step-num">4</div>
+      <div class="step-body">点左侧 <b>Settings → API</b>，复制 <b>Project URL</b> 和 <b>anon public key</b>，填入下方</div>
+    </div>
+
+    <div class="fi"><label>Project URL</label><input id="cfgUrl" placeholder="https://xxxxxxxx.supabase.co" autocomplete="off"></div>
+    <div class="fi"><label>Anon Key</label><input id="cfgKey" placeholder="eyJhbGci..." autocomplete="off"></div>
+    <button class="setup-btn" onclick="connectDB()">连接并进入课表 →</button>
+    <div class="setup-err" id="setupErr"></div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div id="app">
+  <div class="layout">
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <div class="name">跃进初高物 · <span>课表</span></div>
+        <div class="tagline">多老师共享排课系统</div>
+      </div>
+      <div class="sidebar-section">老师列表</div>
+      <div id="teacherList"></div>
+      <button class="sidebar-add-teacher" onclick="openAddTeacher()">＋ 添加老师</button>
+      <div class="sidebar-footer">
+        <div class="sync-status"><div class="sync-dot" id="syncDot"></div><span id="syncLabel">已同步</span></div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="nav-btn" onclick="changeRange(-1)">◀</button>
+          <span class="period-label" id="periodLabel">—</span>
+          <button class="nav-btn" onclick="changeRange(1)">▶</button>
+          <button class="nav-btn" onclick="goToday()">今天</button>
+        </div>
+        <div class="topbar-right">
+          <button class="view-btn active" id="vw2" onclick="setWeeks(2)">双周</button>
+          <button class="view-btn" id="vw4" onclick="setWeeks(4)">四周</button>
+          <button class="view-btn" id="vw6" onclick="setWeeks(6)">六周</button>
+          <button class="add-btn" onclick="openAddLesson()">＋ 添加课程</button>
+        </div>
+      </div>
+
+      <div class="legend-bar">
+        <span style="font-size:12px;color:var(--muted)">颜色：</span>
+        <span class="lg-item"><span class="lg-dot" style="background:#3b82f6"></span>蓝</span>
+        <span class="lg-item"><span class="lg-dot" style="background:#10b981"></span>绿</span>
+        <span class="lg-item"><span class="lg-dot" style="background:#f59e0b"></span>金</span>
+        <span class="lg-item"><span class="lg-dot" style="background:#8b5cf6"></span>紫</span>
+        <span class="lg-item"><span class="lg-dot" style="background:#ec4899"></span>粉</span>
+        <span class="lg-item"><span class="lg-dot" style="background:#ef4444"></span>红</span>
+        <span class="lg-item"><span class="lg-dot" style="background:#06b6d4"></span>青</span>
+        <span class="lg-hint">点击空格添加 · 点击✎编辑</span>
+      </div>
+
+      <div class="stats-bar">
+        <div class="stat">当前老师：<b id="statTeacher">—</b></div>
+        <div class="stat">显示课次：<b id="statCount">0</b></div>
+        <div class="stat">本周课次：<b id="statWeek">0</b></div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr>
+            <th class="date-col">日期</th>
+            <th class="day-col">星期</th>
+            <th class="note-col">备注</th>
+            <th>08–10</th><th>10–12</th><th>12–14</th>
+            <th>14–16</th><th>16–18</th><th>18–20</th><th>20–22</th>
+          </tr></thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LESSON MODAL ══ -->
+<div class="overlay" id="lessonOverlay">
+  <div class="modal">
+    <h3 id="lessonModalTitle">添加课程</h3>
+    <div class="frow"><label>日期</label><input type="date" id="fDate"></div>
+    <div class="frow"><label>时间段</label>
+      <select id="fSlot">
+        <option value="0">08:00–10:00</option><option value="1">10:00–12:00</option>
+        <option value="2">12:00–14:00</option><option value="3">14:00–16:00</option>
+        <option value="4">16:00–18:00</option><option value="5">18:00–20:00</option>
+        <option value="6">20:00–22:00</option>
+      </select>
+    </div>
+    <div class="frow"><label>课程名称</label><input type="text" id="fName" placeholder="如：高一跃进特价班"></div>
+    <div class="frow"><label>备注（可选）</label><input type="text" id="fNote" placeholder="如：侯凌薇"></div>
+    <div class="frow"><label>颜色</label>
+      <div class="color-pick" id="lessonColorPick">
+        <div class="cpick sel" style="background:rgba(59,130,246,.7)" data-c="cc-blue" onclick="pickColor(this,&#39;lesson&#39;)"></div>
+        <div class="cpick" style="background:rgba(16,185,129,.7)" data-c="cc-green" onclick="pickColor(this,&#39;lesson&#39;)"></div>
+        <div class="cpick" style="background:rgba(245,158,11,.7)" data-c="cc-gold" onclick="pickColor(this,&#39;lesson&#39;)"></div>
+        <div class="cpick" style="background:rgba(139,92,246,.7)" data-c="cc-purple" onclick="pickColor(this,&#39;lesson&#39;)"></div>
+        <div class="cpick" style="background:rgba(236,72,153,.7)" data-c="cc-pink" onclick="pickColor(this,&#39;lesson&#39;)"></div>
+        <div class="cpick" style="background:rgba(239,68,68,.7)" data-c="cc-red" onclick="pickColor(this,&#39;lesson&#39;)"></div>
+        <div class="cpick" style="background:rgba(6,182,212,.7)" data-c="cc-teal" onclick="pickColor(this,&#39;lesson&#39;)"></div>
+      </div>
+    </div>
+    <div class="mfooter">
+      <button class="mbtn mbtn-out" onclick="closeOverlay(&#39;lessonOverlay&#39;)">取消</button>
+      <button class="mbtn mbtn-red" id="lessonDelBtn" style="display:none" onclick="deleteLesson()">删除</button>
+      <button class="mbtn mbtn-blue" onclick="saveLesson()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ TEACHER MODAL ══ -->
+<div class="overlay" id="teacherOverlay">
+  <div class="modal">
+    <h3 id="teacherModalTitle">添加老师</h3>
+    <div class="frow"><label>姓名</label><input type="text" id="tName" placeholder="如：陈永豪"></div>
+    <div class="frow"><label>头像颜色</label>
+      <div class="teacher-color-pick" id="teacherColorPick">
+        <div class="tcolor sel" style="background:#3b82f6" data-tc="#3b82f6" onclick="pickColor(this,&#39;teacher&#39;)"></div>
+        <div class="tcolor" style="background:#10b981" data-tc="#10b981" onclick="pickColor(this,&#39;teacher&#39;)"></div>
+        <div class="tcolor" style="background:#f59e0b" data-tc="#f59e0b" onclick="pickColor(this,&#39;teacher&#39;)"></div>
+        <div class="tcolor" style="background:#8b5cf6" data-tc="#8b5cf6" onclick="pickColor(this,&#39;teacher&#39;)"></div>
+        <div class="tcolor" style="background:#ec4899" data-tc="#ec4899" onclick="pickColor(this,&#39;teacher&#39;)"></div>
+        <div class="tcolor" style="background:#ef4444" data-tc="#ef4444" onclick="pickColor(this,&#39;teacher&#39;)"></div>
+        <div class="tcolor" style="background:#06b6d4" data-tc="#06b6d4" onclick="pickColor(this,&#39;teacher&#39;)"></div>
+        <div class="tcolor" style="background:#f97316" data-tc="#f97316" onclick="pickColor(this,&#39;teacher&#39;)"></div>
+      </div>
+    </div>
+    <div class="mfooter">
+      <button class="mbtn mbtn-out" onclick="closeOverlay(&#39;teacherOverlay&#39;)">取消</button>
+      <button class="mbtn mbtn-red" id="teacherDelBtn" style="display:none" onclick="deleteTeacher()">删除</button>
+      <button class="mbtn mbtn-blue" onclick="saveTeacher()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOADING ══ -->
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const SLOTS=['08:00–10:00','10:00–12:00','12:00–14:00','14:00–16:00','16:00–18:00','18:00–20:00','20:00–22:00'];
+const DAYS_SHORT=['日','一','二','三','四','五','六'];
+
+let sb=null; // supabase client
+let teachers=[];
+let lessons=[];
+let currentTeacherId=null;
+let viewWeeks=2;
+let startOffset=0;
+let editLessonId=null;
+let editTeacherId=null;
+let lessonColor='cc-blue';
+let teacherColor='#3b82f6';
+
+// ── CONFIG ──
+function getConfig(){try{return JSON.parse(localStorage.getItem('sb_config')||'null');}catch{return null;}}
+function saveConfig(url,key){localStorage.setItem('sb_config',JSON.stringify({url,key}));}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded',()=>{
+  const cfg=getConfig();
+  if(cfg){initSupabase(cfg.url,cfg.key);}
+});
+
+async function connectDB(){
+  const url=document.getElementById('cfgUrl').value.trim();
+  const key=document.getElementById('cfgKey').value.trim();
+  if(!url||!key){showSetupErr('请填写 URL 和 Key');return;}
+  showSetupErr('');
+  initSupabase(url,key);
+}
+
+function initSupabase(url,key){
+  try{
+    sb=supabase.createClient(url,key);
+    saveConfig(url,key);
+    startApp();
+  }catch(e){showSetupErr('连接失败：'+e.message);}
+}
+
+async function startApp(){
+  showLoading(true);
+  try{
+    await loadTeachers();
+    await loadLessons();
+    document.getElementById('setupScreen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    if(teachers.length>0) selectTeacher(teachers[0].id);
+    setSyncOk();
+  }catch(e){
+    showSetupErr('数据加载失败：'+e.message);
+    localStorage.removeItem('sb_config');
+  }finally{showLoading(false);}
+}
+
+// ── DATA ──
+async function loadTeachers(){
+  const {data,error}=await sb.from('teachers').select('*').order('id');
+  if(error)throw error;
+  teachers=data||[];
+  renderTeacherList();
+}
+async function loadLessons(){
+  if(!currentTeacherId)return;
+  setSyncLoading();
+  const {data,error}=await sb.from('lessons').select('*').eq('teacher_id',currentTeacherId);
+  if(error){setSyncError();throw error;}
+  lessons=data||[];
+  setSyncOk();
+  renderTable();
+}
+
+// ── TEACHER CRUD ──
+async function saveTeacher(){
+  const name=document.getElementById('tName').value.trim();
+  if(!name){alert('请填写姓名');return;}
+  showLoading(true);
+  try{
+    if(editTeacherId){
+      const {error}=await sb.from('teachers').update({name,color:teacherColor}).eq('id',editTeacherId);
+      if(error)throw error;
+      showToast('老师信息已更新');
+    }else{
+      const {data,error}=await sb.from('teachers').insert({name,color:teacherColor}).select().single();
+      if(error)throw error;
+      showToast('老师已添加');
+    }
+    await loadTeachers();
+    closeOverlay('teacherOverlay');
+  }catch(e){alert('保存失败：'+e.message);}
+  finally{showLoading(false);}
+}
+async function deleteTeacher(){
+  if(!editTeacherId)return;
+  if(!confirm('删除老师会同时删除该老师所有课程，确定？'))return;
+  showLoading(true);
+  try{
+    await sb.from('lessons').delete().eq('teacher_id',editTeacherId);
+    await sb.from('teachers').delete().eq('id',editTeacherId);
+    if(currentTeacherId===editTeacherId)currentTeacherId=null;
+    await loadTeachers();
+    if(teachers.length>0)selectTeacher(teachers[0].id);
+    else{lessons=[];renderTable();}
+    closeOverlay('teacherOverlay');
+    showToast('老师已删除');
+  }catch(e){alert('删除失败：'+e.message);}
+  finally{showLoading(false);}
+}
+
+// ── LESSON CRUD ──
+async function saveLesson(){
+  const name=document.getElementById('fName').value.trim();
+  const date=document.getElementById('fDate').value;
+  const slot=parseInt(document.getElementById('fSlot').value);
+  const note=document.getElementById('fNote').value.trim();
+  if(!name||!date){alert('请填写日期和课程名称');return;}
+  showLoading(true);
+  try{
+    if(editLessonId){
+      const {error}=await sb.from('lessons').update({name,date,slot,color:lessonColor,note}).eq('id',editLessonId);
+      if(error)throw error;
+      showToast('课程已更新');
+    }else{
+      const {error}=await sb.from('lessons').insert({teacher_id:currentTeacherId,name,date,slot,color:lessonColor,note});
+      if(error)throw error;
+      showToast('课程已添加');
+    }
+    await loadLessons();
+    closeOverlay('lessonOverlay');
+  }catch(e){alert('保存失败：'+e.message);}
+  finally{showLoading(false);}
+}
+async function deleteLesson(){
+  if(!editLessonId)return;
+  if(!confirm('确定删除这节课？'))return;
+  showLoading(true);
+  try{
+    await sb.from('lessons').delete().eq('id',editLessonId);
+    await loadLessons();
+    closeOverlay('lessonOverlay');
+    showToast('课程已删除');
+  }catch(e){alert('删除失败：'+e.message);}
+  finally{showLoading(false);}
+}
+
+// ── RENDER TEACHER LIST ──
+function renderTeacherList(){
+  const el=document.getElementById('teacherList');
+  el.innerHTML='';
+  teachers.forEach(t=>{
+    const btn=document.createElement('button');
+    btn.className='teacher-btn'+(t.id===currentTeacherId?' active':'');
+    btn.innerHTML=`
+      <div class="teacher-avatar" style="background:${t.color||'#3b82f6'}">${t.name.charAt(0)}</div>
+      <div class="teacher-info">
+        <div class="teacher-name">${t.name}</div>
+        <div class="teacher-count">${lessons.filter(l=>l.teacher_id===t.id).length} 节课</div>
+      </div>
+    `;
+    btn.onclick=()=>selectTeacher(t.id);
+    btn.ondblclick=()=>openEditTeacher(t.id);
+    el.appendChild(btn);
+  });
+}
+
+// ── SELECT TEACHER ──
+async function selectTeacher(id){
+  currentTeacherId=id;
+  renderTeacherList();
+  await loadLessons();
+  const t=teachers.find(x=>x.id===id);
+  document.getElementById('statTeacher').textContent=t?t.name:'—';
+}
+
+// ── RENDER TABLE ──
+function renderTable(){
+  const today=new Date();
+  const base=getMondayOfWeek(today);
+  const start=addDays(base,startOffset*7);
+  const totalDays=viewWeeks*7;
+  const end=addDays(start,totalDays-1);
+
+  document.getElementById('periodLabel').textContent=
+    `${start.getFullYear()}.${start.getMonth()+1}.${start.getDate()} — ${end.getMonth()+1}.${end.getDate()}`;
+
+  // stats
+  const mon=getMondayOfWeek(today);
+  const sun=addDays(mon,6);
+  const wkLessons=lessons.filter(l=>{const d=new Date(l.date);return d>=mon&&d<=sun;});
+  document.getElementById('statCount').textContent=lessons.length;
+  document.getElementById('statWeek').textContent=wkLessons.length;
+
+  const tbody=document.getElementById('tableBody');
+  tbody.innerHTML='';
+
+  for(let i=0;i<totalDays;i++){
+    const date=addDays(start,i);
+    const ds=fmtDate(date);
+    const dayIdx=date.getDay();
+    const isWeekend=dayIdx===0||dayIdx===6;
+    const isToday=ds===fmtDate(today);
+
+    const tr=document.createElement('tr');
+    if(isWeekend)tr.classList.add('weekend-row');
+
+    // date
+    const tdD=document.createElement('td');
+    tdD.className='meta'+(isToday?' today-col':'');
+    tdD.textContent=`${date.getFullYear()}/${String(date.getMonth()+1).padStart(2,'0')}/${String(date.getDate()).padStart(2,'0')}`;
+    if(isToday)tdD.style.fontWeight='700';
+    tr.appendChild(tdD);
+
+    // day
+    const tdDy=document.createElement('td');
+    tdDy.className='day-meta'+(isWeekend?' weekend':'');
+    tdDy.textContent='星期'+DAYS_SHORT[dayIdx];
+    tr.appendChild(tdDy);
+
+    // note
+    const tdN=document.createElement('td');
+    tdN.className='note-meta';
+    const ni=document.createElement('input');
+    ni.className='note-inp';ni.placeholder='备注';
+    const savedNote=getDayNote(ds);
+    ni.value=savedNote;
+    ni.addEventListener('change',e=>saveDayNote(ds,e.target.value));
+    tdN.appendChild(ni);
+    tr.appendChild(tdN);
+
+    // slots
+    for(let s=0;s<7;s++){
+      const td=document.createElement('td');
+      td.className='slot'+(isToday?' today-slot':'');
+      td.onclick=(e)=>{if(e.target===td)openAddLesson(ds,s);};
+
+      const dayL=lessons.filter(l=>l.date===ds&&l.slot===s);
+      dayL.forEach(l=>{
+        const chip=document.createElement('div');
+        chip.className=`chip ${l.color||'cc-blue'}`;
+        chip.innerHTML=`<span class="chip-name">${l.name}${l.note?'<br><span style="font-size:10px;opacity:.7">'+l.note+'</span>':''}</span><span class="chip-edit" onclick="openEditLesson(${l.id},event)">✎</span>`;
+        chip.onclick=(e)=>{if(!e.target.classList.contains('chip-edit'))openEditLesson(l.id,e);};
+        td.appendChild(chip);
+      });
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+}
+
+// ── DAY NOTES (local) ──
+let dayNotes={};
+function getDayNote(d){return dayNotes[d]||'';}
+function saveDayNote(d,v){
+  if(v)dayNotes[d]=v;else delete dayNotes[d];
+  try{localStorage.setItem('day_notes_v2',JSON.stringify(dayNotes));}catch(e){}
+}
+function loadDayNotes(){try{const s=localStorage.getItem('day_notes_v2');if(s)dayNotes=JSON.parse(s);}catch(e){}}
+
+// ── MODAL HELPERS ──
+function openAddLesson(date,slot){
+  editLessonId=null;
+  document.getElementById('lessonModalTitle').textContent='添加课程';
+  document.getElementById('lessonDelBtn').style.display='none';
+  document.getElementById('fDate').value=date||fmtDate(new Date());
+  document.getElementById('fSlot').value=slot!=null?slot:0;
+  document.getElementById('fName').value='';
+  document.getElementById('fNote').value='';
+  resetColorPick('lessonColorPick','cpick','cc-blue');
+  lessonColor='cc-blue';
+  document.getElementById('lessonOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('fName').focus(),60);
+}
+function openEditLesson(id,e){
+  if(e){e.stopPropagation();e.preventDefault();}
+  const l=lessons.find(x=>x.id===id);if(!l)return;
+  editLessonId=id;
+  document.getElementById('lessonModalTitle').textContent='编辑课程';
+  document.getElementById('lessonDelBtn').style.display='';
+  document.getElementById('fDate').value=l.date;
+  document.getElementById('fSlot').value=l.slot;
+  document.getElementById('fName').value=l.name;
+  document.getElementById('fNote').value=l.note||'';
+  resetColorPick('lessonColorPick','cpick',l.color||'cc-blue');
+  lessonColor=l.color||'cc-blue';
+  document.getElementById('lessonOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('fName').focus(),60);
+}
+function openAddTeacher(){
+  editTeacherId=null;
+  document.getElementById('teacherModalTitle').textContent='添加老师';
+  document.getElementById('teacherDelBtn').style.display='none';
+  document.getElementById('tName').value='';
+  resetColorPick('teacherColorPick','tcolor','#3b82f6','tc');
+  teacherColor='#3b82f6';
+  document.getElementById('teacherOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('tName').focus(),60);
+}
+function openEditTeacher(id){
+  const t=teachers.find(x=>x.id===id);if(!t)return;
+  editTeacherId=id;
+  document.getElementById('teacherModalTitle').textContent='编辑老师';
+  document.getElementById('teacherDelBtn').style.display='';
+  document.getElementById('tName').value=t.name;
+  resetColorPick('teacherColorPick','tcolor',t.color||'#3b82f6','tc');
+  teacherColor=t.color||'#3b82f6';
+  document.getElementById('teacherOverlay').classList.add('show');
+  setTimeout(()=>document.getElementById('tName').focus(),60);
+}
+function closeOverlay(id){document.getElementById(id).classList.remove('show');editLessonId=null;editTeacherId=null;}
+function pickColor(el,type){
+  const attr=type==='teacher'?'tc':'c';
+  const parent=type==='teacher'?'teacherColorPick':'lessonColorPick';
+  const cls=type==='teacher'?'tcolor':'cpick';
+  document.querySelectorAll(`#${parent} .${cls}`).forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  if(type==='teacher')teacherColor=el.dataset.tc;
+  else lessonColor=el.dataset.c;
+}
+function resetColorPick(parentId,cls,val,attr='c'){
+  document.querySelectorAll(`#${parentId} .${cls}`).forEach(o=>o.classList.remove('sel'));
+  const el=document.querySelector(`#${parentId} [data-${attr}="${val}"]`);
+  if(el)el.classList.add('sel');
+}
+
+// ── NAVIGATION ──
+function changeRange(d){startOffset+=d;renderTable();}
+function goToday(){startOffset=0;renderTable();}
+function setWeeks(n){
+  viewWeeks=n;
+  document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('vw'+n).classList.add('active');
+  renderTable();
+}
+
+// ── SYNC STATUS ──
+function setSyncOk(){const d=document.getElementById('syncDot');d.className='sync-dot';document.getElementById('syncLabel').textContent='已同步';}
+function setSyncLoading(){const d=document.getElementById('syncDot');d.className='sync-dot loading';document.getElementById('syncLabel').textContent='同步中…';}
+function setSyncError(){const d=document.getElementById('syncDot');d.className='sync-dot error';document.getElementById('syncLabel').textContent='同步失败';}
+
+// ── UTILS ──
+function getMondayOfWeek(d){const dt=new Date(d);const day=dt.getDay();const diff=dt.getDate()-(day===0?6:day-1);return new Date(dt.setDate(diff));}
+function fmtDate(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function addDays(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function showLoading(v){document.getElementById('loadingOverlay').classList.toggle('show',v);}
+function showSetupErr(msg){document.getElementById('setupErr').textContent=msg;}
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){closeOverlay('lessonOverlay');closeOverlay('teacherOverlay');}
+  if(e.key==='Enter'&&document.getElementById('lessonOverlay').classList.contains('show'))saveLesson();
+});
+['lessonOverlay','teacherOverlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{if(e.target.id===id)closeOverlay(id);});
+});
+
+loadDayNotes();
+</script>
+
+
+</body></html>
